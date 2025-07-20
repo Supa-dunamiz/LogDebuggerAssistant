@@ -1,0 +1,117 @@
+﻿@page "/log_tool"
+@inherits HomeBase
+<div class="container-lg mt-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-gradient-primary mb-3">Log Analysis Expert System</h1>
+
+        <div class="file-upload-card mx-auto" id="dropZone">
+            <InputFile class="d-none" OnChange="HandleUpload" id="fileInput" />
+            <label for="fileInput" class="file-upload-label">
+                <div class="upload-content">
+                    <i class="bi bi-cloud-upload display-6 text-muted mb-3"></i>
+                    <h5 class="mb-2">Upload Log File</h5>
+                    <p class="text-muted mb-0">Drag & drop or click to browse</p>
+                    <small class="text-muted">Supported formats: .log, .txt</small>
+                </div>
+                @if (uploadedFile != null)
+                {
+                    <div class="upload-preview mt-3">
+                        <i class="bi bi-file-text me-2"></i>
+                        <span>@uploadedFile.Name</span>
+                        <small class="text-muted ms-2">(@GetFileSize(uploadedFile.Size))</small>
+                    </div>
+                }
+            </label>
+        </div>
+    </div>
+
+    @if (isProcessing)
+    {
+        <div class="processing-overlay show">
+            <div class="processing-content">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 class="mb-0">Analyzing Log Entries</h5>
+                <p class="text-muted mb-0">@processingStatus</p>
+            </div>
+        </div>
+    }
+
+    @if (Results != null && !isProcessing)
+    {
+
+        <ErrorViewModal Results="@Results"
+                        OnClose="() => Results = null" />
+
+
+
+        @* <div class="analysis-results card border-0 shadow-lg"> *@
+        @*     <div class="card-header bg-white py-3 border-bottom"> *@
+        @*         <h4 class="mb-0"> *@
+        @*             <i class="bi bi-activity me-2 text-primary"></i> *@
+        @*             Analysis Results *@
+        @*         </h4> *@
+        @*     </div> *@
+        @*     <div class="card-body"> *@
+        @*         <div class="table-responsive rounded-3"> *@
+        @*             <table class="table table-analysis mb-0"> *@
+        @*                 <thead class="bg-light"> *@
+        @*                     <tr> *@
+        @*                         <th style="width: 30%">Category</th> *@
+        @*                         <th style="width: 70%">Details</th> *@
+        @*                     </tr> *@
+        @*                 </thead> *@
+        @*                 <tbody> *@
+        @*                     @foreach (var result in Results) *@
+        @*                     { *@
+        @*                         <tr class="analysis-row"> *@
+        @*                             <td class="category-cell align-middle"> *@
+        @*                                 <div class="category-label">Error</div> *@
+        @*                             </td> *@
+        @*                             <td class="details-cell"> *@
+        @*                                 <div class="error-message">@result.Log.Message</div> *@
+        @*                                 <div class="stack-trace text-muted mt-1">@result.Log.StackTrace</div> *@
+        @*                             </td> *@
+        @*                         </tr> *@
+        @*                         <tr class="analysis-row"> *@
+        @*                             <td class="category-cell align-middle"> *@
+        @*                                 <div class="category-label">Root Cause</div> *@
+        @*                             </td> *@
+        @*                             <td class="details-cell"> *@
+        @*                                 <div class="root-cause"> *@
+        @*                                     <i class="bi bi-search me-2 text-warning"></i> *@
+        @*                                     @result.RootCause *@
+        @*                                 </div> *@
+        @*                             </td> *@
+        @*                         </tr> *@
+        @*                         <tr class="analysis-row"> *@
+        @*                             <td class="category-cell align-middle"> *@
+        @*                                 <div class="category-label">Suggested Fix</div> *@
+        @*                             </td> *@
+        @*                             <td class="details-cell"> *@
+        @*                                 <div class="suggested-fix text-success"> *@
+        @*                                     <i class="bi bi-check-circle me-2"></i> *@
+        @*                                     @result.SuggestedFix *@
+        @*                                 </div> *@
+        @*                             </td> *@
+        @*                         </tr> *@
+        @*                         <tr class="separator"> *@
+        @*                             <td colspan="2"></td> *@
+        @*                         </tr> *@
+        @*                     } *@
+        @*                 </tbody> *@
+        @*             </table> *@
+        @*         </div> *@
+        @*     </div> *@
+        @* </div> *@
+    }
+    else if (!isProcessing)
+    {
+        <div class="empty-state text-center py-5">
+            <i class="bi bi-file-earmark-text display-4 text-muted mb-3"></i>
+            <h4 class="mb-3">No Log File Analyzed</h4>
+            <p class="text-muted mb-0">Upload a log file to begin analysis</p>
+        </div>
+    }
+</div>

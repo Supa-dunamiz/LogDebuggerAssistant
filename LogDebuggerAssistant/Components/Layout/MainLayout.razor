@@ -1,0 +1,186 @@
+﻿@inherits LayoutComponentBase
+@inject IJSRuntime JS
+
+<RadzenLayout style="position: relative">
+    <RadzenHeader Style="background-color:ghostwhite; color:cornflowerblue; position: relative">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0" Class="w-100">
+            <!-- Toggle Button (Desktop only) -->
+            <RadzenSidebarToggle Style="color:cornflowerblue"
+                                 Class="desktop-only"
+                                 @ref="sidebarToggle"
+                                 Click="@ToggleSidebar" />
+
+            <RadzenLabel Text="Log Analysis Tool" Class="mr-auto mobile-title" />
+
+            <!-- Horizontal Menu (Mobile only) -->
+            <div class="mobile-menu">
+                <nav class="nav-links">
+                    <a href="/" class="nav-link">
+                        <RadzenIcon Icon="home" Class="me-1" />
+                        <span>Home</span>
+                    </a>
+                    <a href="/log_tool" class="nav-link">
+                        <RadzenIcon Icon="analytics" Class="me-1" />
+                        <span>Log Tool</span>
+                    </a>
+                    <a href="/benefits" class="nav-link">
+                        <RadzenIcon Icon="insights" Class="me-1" />
+                        <span>Benefits</span>
+                    </a>
+                </nav>
+            </div>
+        </RadzenStack>
+    </RadzenHeader>
+
+    <RadzenSidebar Responsive="false" @bind-Expanded="@sidebarExpanded"
+                   style="position: absolute" id="main-sidebar">
+        <RadzenPanelMenu>
+            <RadzenPanelMenuItem Text="Home" Icon="home" Path="/" />
+            <RadzenPanelMenuItem Text="Log Tool" Icon="analytics" Path="/log_tool" />
+            <RadzenPanelMenuItem Text="Benefits" Icon="insights" Path="/benefits" />
+        </RadzenPanelMenu>
+    </RadzenSidebar>
+
+    <RadzenBody>
+        <div class="rz-p-4">
+            @Body
+        </div>
+    </RadzenBody>
+
+    <RadzenFooter>
+        <div class="d-flex justify-content-center">
+            <RadzenRow Class="text-center">
+                <RadzenColumn>
+                    <div style="font-size: 0.9rem; color: #6c757d; letter-spacing: 0.5px;">
+                        <RadzenIcon Style="font-size:0.9rem" Icon="copyright" />
+                        @DateTime.Now.Year Supa-Devs
+                        <div class="mt-1" style="font-size: 0.85rem;">All Rights Preserved</div>
+                    </div>
+                </RadzenColumn>
+            </RadzenRow>
+        </div>
+    </RadzenFooter>
+</RadzenLayout>
+
+<RadzenComponents @rendermode="InteractiveServer" />
+
+<style>
+    /* Desktop styles */
+    .desktop-only {
+        display: block !important;
+    }
+
+    .mobile-menu {
+        display: none !important;
+    }
+
+    /* Mobile styles */
+    @@media (max-width: 768px) {
+        .desktop-only {
+            display: none !important;
+        }
+
+        .mobile-menu {
+            display: block !important;
+            margin-left: auto;
+        }
+
+        #main-sidebar {
+            display: none !important;
+        }
+
+        .mobile-title {
+            margin-left: 1rem !important;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: cornflowerblue !important;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+            .nav-link:hover {
+                color: #3f6ad8 !important;
+                transform: translateY(-1px);
+            }
+
+            .nav-link span {
+                font-size: 0.9rem;
+                font-weight: 500;
+            }
+    }
+
+    /* Sidebar styling */
+    .rz-sidebar {
+        background-color: ghostwhite !important;
+        border-right: 1px solid #dee2e6 !important;
+    }
+</style>
+
+<script suppress-error="BL9992">
+    function setupClickOutsideListener(sidebarId, component, toggleSelector) {
+        const sidebar = document.getElementById(sidebarId);
+        const toggle = document.querySelector(toggleSelector);
+
+        function handleClickOutside(event) {
+            const isToggle = toggle.contains(event.target);
+            const isSidebar = sidebar.contains(event.target);
+
+            if (!isSidebar && !isToggle) {
+                component.invokeMethodAsync('SetSidebarExpanded', false);
+            }
+        }
+
+        document.addEventListener('click', handleClickOutside);
+
+        return {
+            dispose: () => {
+                document.removeEventListener('click', handleClickOutside);
+            }
+        };
+    }
+</script>
+
+@code {
+    bool sidebarExpanded = false;
+    private DotNetObjectReference<MainLayout>? objRef;
+    private RadzenSidebarToggle? sidebarToggle;
+
+    private void ToggleSidebar()
+    {
+        sidebarExpanded = !sidebarExpanded;
+    }
+
+    [JSInvokable]
+    public void SetSidebarExpanded(bool expanded)
+    {
+        sidebarExpanded = expanded;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("setupClickOutsideListener",
+                "main-sidebar",
+                objRef,
+                ".desktop-only");
+        }
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
+}
